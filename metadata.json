@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Cine-Render Studio",
+  "description": "AI-Powered Cinematic Image & Video Generator for Filmmakers. Create hyper-realistic storyboards, characters, and video clips using Gemini 3 Pro and Veo.",
+  "requestFramePermissions": []
+}
