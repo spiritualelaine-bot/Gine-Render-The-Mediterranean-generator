@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { generateVeoVideo } from '../services/geminiService';
-import { Loader2, Video, Image as ImageIcon, Upload } from 'lucide-react';
+import { Loader2, Video, Image as ImageIcon, Upload, Move, Wind, Palette, Settings, Fingerprint, Lock } from 'lucide-react';
 
 export const VideoGenerator: React.FC = () => {
   const [mode, setMode] = useState<'text' | 'image'>('text');
@@ -40,6 +40,60 @@ export const VideoGenerator: React.FC = () => {
     }
   };
 
+  const appendToPrompt = (text: string) => {
+    setPrompt(prev => {
+      const cleanPrev = prev.trim();
+      if (!cleanPrev) return text;
+      if (!/[.,;]$/.test(cleanPrev)) {
+        return `${cleanPrev}, ${text}`;
+      }
+      return `${cleanPrev} ${text}`;
+    });
+  };
+
+  const isScribeLocked = prompt.includes("MediterraneanScribe_Consistency_V1");
+
+  const applyScribePreset = () => {
+    const seed = "--character-consistency-seed MediterraneanScribe_Consistency_V1";
+    const description = "Base character: mid-40s Middle Eastern Jewish scribe, weathered olive skin, thick curly dark-brown beard with natural gray streaks, deep-set intense brown eyes, subtle forehead creases, strong but kind facial structure, short curly hair partially covered by a coarse beige woven head cloth. Wearing off-white rough woolen robe with visible weave texture and slight fraying at cuffs. Ink-stained fingers (index and middle finger of left hand have permanent black marks). Exact likeness must be preserved.";
+    
+    setPrompt(prev => {
+       if (prev.includes(seed)) return prev;
+       return `${seed}\n${description}\n\n${prev}`;
+    });
+  };
+
+  const cameraMovements = [
+    { label: 'Static Shot', text: 'static shot, tripod stability' },
+    { label: 'Pan Left', text: 'slow cinematic pan to the left' },
+    { label: 'Pan Right', text: 'slow cinematic pan to the right' },
+    { label: 'Tilt Up', text: 'gentle tilt up revealing the scene' },
+    { label: 'Tilt Down', text: 'gentle tilt down from sky to subject' },
+    { label: 'Dolly In', text: 'slow dolly in towards the subject' },
+    { label: 'Dolly Out', text: 'slow dolly out revealing context' },
+    { label: 'Crane Shot', text: 'sweeping crane shot establishing the environment' }
+  ];
+
+  const subtleAnimations = [
+    { label: 'Slight Breathing', text: 'subtle rhythmic breathing movement' },
+    { label: 'Gentle Cloth Movement', text: 'fabric swaying gently in light breeze' },
+    { label: 'Candle Flicker', text: 'candle flame flickering softly' },
+    { label: 'Subtle Eye Blink', text: 'natural subtle eye blinking' }
+  ];
+
+  const styleReferences = [
+    { label: 'The Chosen Look', text: 'hyper-realistic cinematography in the exact visual tone of The Chosen' },
+    { label: 'Apostle Aesthetic', text: 'style of Paul Apostle of Christ, muted earth tones, rich detail, zero stylization or fantasy glow' },
+    { label: 'Biblical Epic', text: 'classic biblical epic style, grand scale, naturalistic lighting' },
+    { label: 'Historical Doc', text: 'high-fidelity historical documentary style, raw and unpolished' }
+  ];
+
+  const technicalSpecs = [
+    { label: 'Seamless Loop', text: '8-12 second seamless loop' },
+    { label: 'Cinematic 4K', text: '4k, 24 fps, cinematic aspect ratio 2.39:1' },
+    { label: 'Slow Motion', text: 'slow motion 60fps playback' }
+  ];
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
@@ -63,7 +117,7 @@ export const VideoGenerator: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
+        <div className="space-y-6 h-[600px] overflow-y-auto custom-scrollbar pr-2">
           
           {mode === 'image' && (
             <div 
@@ -83,6 +137,36 @@ export const VideoGenerator: React.FC = () => {
             </div>
           )}
 
+          {/* Character Consistency Section */}
+          <div className={`border rounded-lg p-4 transition-all duration-500 ${isScribeLocked ? 'bg-amber-950/40 border-amber-600/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'bg-amber-950/20 border-amber-900/30'}`}>
+             <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-amber-500 font-bold uppercase tracking-wider text-xs">
+                  <Fingerprint size={14} />
+                  <span>MediterraneanScribe_Consistency_V1</span>
+                </div>
+                {isScribeLocked && (
+                  <div className="flex items-center gap-1 text-[10px] bg-amber-600 text-stone-950 px-2 py-0.5 rounded font-bold animate-pulse">
+                    <Lock size={10} />
+                    LOCKED
+                  </div>
+                )}
+             </div>
+             <p className="text-xs text-stone-400 mb-4 leading-relaxed">
+               When enabled, every generated video will feature the identical scribe from the original reference.
+             </p>
+             <button 
+                onClick={applyScribePreset}
+                disabled={isScribeLocked}
+                className={`w-full py-2.5 text-xs font-bold uppercase tracking-wider rounded transition-all flex items-center justify-center gap-2
+                  ${isScribeLocked 
+                    ? 'bg-amber-600/20 text-amber-500 border border-amber-600/50 cursor-default' 
+                    : 'bg-amber-900/40 hover:bg-amber-900/60 border border-amber-700/50 text-amber-200'}`}
+             >
+               <Fingerprint size={16} />
+               {isScribeLocked ? 'Same Scribe (Locked)' : 'Lock Scribe Consistency'}
+             </button>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-stone-300">
               {mode === 'image' ? 'Animation Prompt (Optional)' : 'Scene Description'}
@@ -93,6 +177,80 @@ export const VideoGenerator: React.FC = () => {
               placeholder={mode === 'image' ? "Describe the movement (e.g., camera pans right, candle flickers)..." : "A cinematic drone shot of ancient Jerusalem at sunset..."}
               className="w-full h-32 bg-stone-900 border border-stone-700 rounded-lg p-3 text-stone-200 focus:ring-2 focus:ring-amber-600 resize-none"
             />
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-stone-900/50 p-4 rounded-lg border border-stone-800">
+               <div className="flex items-center gap-2 mb-3 text-stone-400 text-xs font-bold uppercase tracking-wider">
+                  <Palette size={14} />
+                  <span>Style Reference</span>
+               </div>
+               <div className="flex flex-wrap gap-2">
+                  {styleReferences.map((item) => (
+                     <button
+                        key={item.label}
+                        onClick={() => appendToPrompt(item.text)}
+                        className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-800 text-stone-300 rounded border border-stone-700 transition-all"
+                     >
+                        {item.label}
+                     </button>
+                  ))}
+               </div>
+            </div>
+
+            <div className="bg-stone-900/50 p-4 rounded-lg border border-stone-800">
+               <div className="flex items-center gap-2 mb-3 text-stone-400 text-xs font-bold uppercase tracking-wider">
+                  <Settings size={14} />
+                  <span>Technical Specs & Format</span>
+               </div>
+               <div className="flex flex-wrap gap-2">
+                  {technicalSpecs.map((item) => (
+                     <button
+                        key={item.label}
+                        onClick={() => appendToPrompt(item.text)}
+                        className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-800 text-stone-300 rounded border border-stone-700 transition-all"
+                     >
+                        {item.label}
+                     </button>
+                  ))}
+               </div>
+            </div>
+
+            <div className="bg-stone-900/50 p-4 rounded-lg border border-stone-800">
+               <div className="flex items-center gap-2 mb-3 text-stone-400 text-xs font-bold uppercase tracking-wider">
+                  <Move size={14} />
+                  <span>Camera Movement</span>
+               </div>
+               <div className="flex flex-wrap gap-2">
+                  {cameraMovements.map((item) => (
+                     <button
+                        key={item.label}
+                        onClick={() => appendToPrompt(item.text)}
+                        className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-800 text-stone-300 rounded border border-stone-700 transition-all"
+                     >
+                        {item.label}
+                     </button>
+                  ))}
+               </div>
+            </div>
+
+            <div className="bg-stone-900/50 p-4 rounded-lg border border-stone-800">
+               <div className="flex items-center gap-2 mb-3 text-stone-400 text-xs font-bold uppercase tracking-wider">
+                  <Wind size={14} />
+                  <span>Subtle Animation</span>
+               </div>
+               <div className="flex flex-wrap gap-2">
+                  {subtleAnimations.map((item) => (
+                     <button
+                        key={item.label}
+                        onClick={() => appendToPrompt(item.text)}
+                        className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-800 text-stone-300 rounded border border-stone-700 transition-all"
+                     >
+                        {item.label}
+                     </button>
+                  ))}
+               </div>
+            </div>
           </div>
 
           <div className="space-y-2">

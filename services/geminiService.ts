@@ -13,6 +13,7 @@ async function ensureApiKey() {
 
 // --- Image Analysis ---
 export const analyzeImage = async (imageFile: File, prompt: string): Promise<string> => {
+  await ensureApiKey();
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const base64Data = await fileToGenericBase64(imageFile);
@@ -69,6 +70,7 @@ export const generateCinematicImage = async (prompt: string, aspectRatio: ImageA
 
 // --- Image Editing (Nano Banana / Gemini 2.5 Flash Image) ---
 export const editImageCinematic = async (imageFile: File, prompt: string): Promise<string> => {
+  await ensureApiKey();
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const base64Data = await fileToGenericBase64(imageFile);

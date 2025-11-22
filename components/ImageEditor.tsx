@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { editImageCinematic } from '../services/geminiService';
-import { Loader2, Upload, Wand2, ArrowRight } from 'lucide-react';
+import { Loader2, Upload, Wand2, Camera } from 'lucide-react';
 
 export const ImageEditor: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
@@ -34,6 +34,30 @@ export const ImageEditor: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const appendToPrompt = (text: string) => {
+    setPrompt(prev => {
+      const cleanPrev = prev.trim();
+      if (!cleanPrev) return text;
+      // If it doesn't end with punctuation, add a comma
+      if (!/[.,;]$/.test(cleanPrev)) {
+        return `${cleanPrev}, ${text}`;
+      }
+      return `${cleanPrev} ${text}`;
+    });
+  };
+
+  const cinematicStyles = [
+    { label: 'Shallow Depth', text: 'shallow depth of field with soft background bokeh' },
+    { label: 'Wide Angle', text: 'wide-angle lens distortion' },
+    { label: 'Anamorphic', text: 'anamorphic lens flare with cinematic horizontal streaks' },
+    { label: 'Teal & Orange', text: 'cinematic color grading with teal and orange tones' },
+    { label: 'Chiaroscuro', text: 'strong Chiaroscuro lighting with deep shadows and high contrast' },
+    { label: 'Sun Glare', text: 'bright sun-glare washing out the highlights' },
+    { label: 'Noir', text: 'Film Noir style, high contrast black and white, moody' },
+    { label: 'Film Grain', text: 'visible 35mm film grain texture' },
+    { label: 'Motion Blur', text: 'cinematic motion blur accentuating movement' }
+  ];
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -79,6 +103,24 @@ export const ImageEditor: React.FC = () => {
                >
                  {loading ? <Loader2 className="animate-spin" /> : <Wand2 size={20} />}
                </button>
+             </div>
+          </div>
+
+          <div className="bg-stone-900/50 p-4 rounded-lg border border-stone-800">
+             <div className="flex items-center gap-2 mb-3 text-stone-400 text-xs font-bold uppercase tracking-wider">
+                <Camera size={14} />
+                <span>Cinematic Style</span>
+             </div>
+             <div className="flex flex-wrap gap-2">
+                {cinematicStyles.map((item) => (
+                   <button
+                      key={item.label}
+                      onClick={() => appendToPrompt(item.text)}
+                      className="px-3 py-1.5 text-xs bg-stone-800 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-800 text-stone-300 rounded border border-stone-700 transition-all"
+                   >
+                      {item.label}
+                   </button>
+                ))}
              </div>
           </div>
         </div>
